@@ -1,12 +1,18 @@
-# ldapと独自データベースを併用したOpenVPNの認証スクリプト
+# LDAPと独自データベースを併用したOpenVPNの認証スクリプト
 - 独自データベースに登録されているユーザーのみ接続できるスクリプト
 - ただしユーザー認証はLDAP（主にActive Directory）で行う
+
+## 処理概要
+1. ユーザーパスワード認証として`ユーザー名@ドメインのFQDN` `ユーザー名@単一ラベルのDNS名` `単一ラベルのDNS名\ユーザー名`でユーザー名が渡された場合のみ処理を続行する
+  - `.\ユーザー名`やドメイン情報を一切持たないユーザー名のみのログインは拒否する
+2. sqliteファイルからユーザー名と一致するデータが有り、かつ、有効になっている場合に処理を続行する
+3. 入力されたユーザー名とパスワードを元に単純にLDAP認証を行い、正常に認証ができた場合のみOpenVPN接続を許可する。
 
 ## インストール方法
 1. 任意のパスに以下を格納する
   - openvpn-ldap-plus-auth.php
-  - auth.db
   - openvpn-ldap-plus-auth.conf
+  - ovpn-user.php
 2. openvpn-ldap-plus-auth.confに以下の設定を追加する
    - LDAPサーバのURL
    - ログイン対象となるDN
@@ -22,38 +28,24 @@ username-as-common-name
 auth-user-pass-verify /etc/openvpn/auth/openvpn-ldap-plus-auth.php via-file
 ```
 
-4. auth.dbにログインユーザーを追加する
-- SQLiteのテーブル構造
-```sql
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE,
-    is_active INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-);
-```
-- ユーザー追加方法
+4. ユーザー登録
+- コマンドラインツールとして`ovpn-user.php`を用意している
 ```sh
-sqlite3 auth.db "INSERT INTO users (username, is_active) VALUES ('username', 1)"
+# データベース作成: openvpn-ldap-plus-auth.confに設定されているDBのパスからsqliteファイルを作成
+php ovpn-user.php init
+# ユーザーを登録する
+php ovpn-user.php add <username>
+# ユーザー名を変更する
+php ovpn-user.php update <username> <new-username>
+# ユーザーを削除する
+php ovpn-user.php delete <username>
+# ユーザー一覧をjson形式で返す
+php ovpn-user.php list
+# 登録ユーザーを無効にする(is_active=0)
+php ovpn-user.php disable <username>
+# 登録ユーザーを有効にする(is_active=1)
+php ovpn-user.php enable <username>
 ```
-- ユーザーの有効化
-```sh
-sqlite3 auth.db "UPDATE users SET is_active = 1 WHERE username = 'username'"
-```
-- ユーザーの無効化
-```sh
-sqlite3 auth.db "UPDATE users SET is_active = 0 WHERE username = 'username'"
-```
-- ユーザーの削除
-```sh
-sqlite3 auth.db "DELETE FROM users WHERE username = 'username'"
-```
-- ユーザーの一覧表示
-```sh
-sqlite3 auth.db "SELECT * FROM users"
-```
-
 
 ## インストール補足
 ### server.confの記述
