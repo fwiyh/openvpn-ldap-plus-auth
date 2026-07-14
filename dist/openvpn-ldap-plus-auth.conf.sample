@@ -1,0 +1,27 @@
+[ldap]
+; ldap serverのアドレス ldap[s]://hostname[:portnumber]
+; ポート番号の指定がない場合は、ldap[s]に応じて636/389が使用される
+server="ldaps://ldap.comain:636"
+; 検索を行うDN
+base_dn="DC=domain,DC=internal"
+; CA証明書 (PEM形式) LDAPSではない場合はブランク
+ca_cert="./ca.pem"
+
+[db]
+; データベース接続用のDSN (各RDBMSに対応)
+; sqliteの場合
+dsn="sqlite:./auth.db"
+; mysqlなどsqlite以外のRDBMSの場合
+; dsn="mysql:host=localhost;dbname=openvpn;charset=utf8mb4"
+; user="db_user"
+; password="db_password"
+
+; (後方互換用) 従来のsqliteファイルパス指定
+; path="./auth.db"
+
+[ldap_search]
+; フィルターパターン
+; ユーザー名を割り当てるために%sの指定が必要
+filter="(&(objectClass=user)(sAMAccountName=%s))"
+; 検索結果から取得したい属性をカンマ区切りで指定
+attributes="sAMAccountName,"

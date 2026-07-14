@@ -8,4 +8,7 @@
 /src/credentials.txt
 /src/openvpn-ldap-plus-auth.conf
 
-dist/
+dist/*
+!dist/openvpn-ldap-plus-auth.php
+!dist/openvpn-ldap-plus-auth.conf.sample
+!dist/ovpn-user.php

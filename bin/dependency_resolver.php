@@ -134,7 +134,7 @@ function collectClassFiles(string $entryFile, string $srcDir, array &$visited = 
     $visited[$real] = true;
 
     $files = [];
-    $deps  = parseDependencies($real);
+    $deps = parseDependencies($real);
 
     // use 宣言から OpenVpnLdapPlusAuth\* のクラスファイルを解決
     foreach ($deps['uses'] as $class) {
@@ -192,15 +192,4 @@ function collectAllUses(string $filePath): array
 {
     $deps = parseDependencies($filePath);
     return array_values(array_unique($deps['uses']));
-}
-
-// 後方互換: 旧スクリプトから参照されている場合に備えて残す
-function collectAllFiles(string $entryFile, string $srcDir, array &$visited = []): array
-{
-    $classFiles = collectClassFiles($entryFile, $srcDir, $visited);
-    $real = realpath($entryFile);
-    if ($real !== false) {
-        $classFiles[] = $real;
-    }
-    return $classFiles;
 }

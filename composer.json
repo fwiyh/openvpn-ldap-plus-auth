@@ -10,7 +10,6 @@
         }
     },
     "scripts": {
-        "build": "php bin/merge.php",
-        "build-single": "@build"
+        "build": "php bin/merge.php"
     }
 }

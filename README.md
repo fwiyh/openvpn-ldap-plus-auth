@@ -11,7 +11,6 @@
   - pdo
   - 使用するデータベースに対応したPDOドライバ(pdo_sqliteなど)
 
-
 ## 処理概要
 1. ユーザーパスワード認証として`ユーザー名@ドメインのFQDN` `ユーザー名@単一ラベルのDNS名` `単一ラベルのDNS名\ユーザー名`でユーザー名が渡された場合のみ処理を続行する
   - `.\ユーザー名`やドメイン情報を一切持たないユーザー名はローカルアカウントとして独自DB内にある情報で認証する
@@ -22,6 +21,7 @@
 1. 任意のパスに以下を格納する
   - openvpn-ldap-plus-auth.php
   - openvpn-ldap-plus-auth.conf
+    - openvpn-ldap-plus-auth.conf.sampleをリネームしたもの
   - ovpn-user.php
 2. openvpn-ldap-plus-auth.confに以下の設定を追加する
    - LDAPサーバのURL
@@ -76,6 +76,10 @@ auth-user-pass-verify /etc/openvpn/auth/openvpn-ldap-plus-auth.php via-file
 ```
 - 上の例ではdebian13の標準パッケージにある`php-cli` `php-ldap`をインストールしている
 - `script-security 2`は必須
+
+## 配布ソースの作成方法
+- `composer build`を実行して、`dist/`ディレクトリにファイルが生成される
+- `src/openvpn-ldap-plus-auth.conf.sample`を含めた3ファイルが配布対象となる
 
 ## 特殊運用
 ### 手動でテーブルを作成する場合のテーブル定義
