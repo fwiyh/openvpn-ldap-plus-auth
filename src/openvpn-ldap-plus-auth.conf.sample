@@ -8,8 +8,16 @@ base_dn="DC=domain,DC=internal"
 ca_cert="./ca.pem"
 
 [db]
-; sqliteデータベースのパス
-path="./auth.db"
+; データベース接続用のDSN (各RDBMSに対応)
+; sqliteの場合
+dsn="sqlite:./auth.db"
+; mysqlなどsqlite以外のRDBMSの場合
+; dsn="mysql:host=localhost;dbname=openvpn;charset=utf8mb4"
+; user="db_user"
+; password="db_password"
+
+; (後方互換用) 従来のsqliteファイルパス指定
+; path="./auth.db"
 
 [ldap_search]
 ; フィルターパターン

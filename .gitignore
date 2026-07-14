@@ -7,3 +7,5 @@
 /src/ca.pem
 /src/credentials.txt
 /src/openvpn-ldap-plus-auth.conf
+
+dist/
