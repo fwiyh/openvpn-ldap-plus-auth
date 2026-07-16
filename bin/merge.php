@@ -24,6 +24,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/dependency_resolver.php';
 
+// ソースコードのインデント
+const SOURCE_INDENT = '    ';
+
 // プロジェクトルート = bin/ の親ディレクトリ
 $projectRoot = (string) realpath(__DIR__ . '/..');
 $projectName = basename($projectRoot);
@@ -58,7 +61,7 @@ foreach ($buildConfig as $sectionName => $section) {
         exit(1);
     }
 
-    $entryFile  = $projectRoot . '/' . $entryRelative;
+    $entryFile = $projectRoot . '/' . $entryRelative;
     $outputFile = $projectRoot . '/' . $outputRelative;
 
     if (!is_file($entryFile)) {
@@ -111,7 +114,7 @@ function buildMergedFile(
     string $projectName
 ): string {
     // 依存クラスファイルを収集（エントリポイント自身は含まない）
-    $visited    = [];
+    $visited = [];
     $classFiles = collectClassFiles($entryFile, $srcDir, $visited);
 
     // ===== namespace OpenVpnLdapPlusAuth { } ブロックの構築 =====
@@ -121,7 +124,7 @@ function buildMergedFile(
     $globalBlock = buildGlobalBlock($entryFile, $projectRoot, $projectName);
 
     // ===== 最終出力の組み立て =====
-    $output  = "#!/usr/bin/php\n";
+    $output = "#!/usr/bin/php\n";
     $output .= "<?php\n";
     $output .= "declare(strict_types=1);\n";
     $output .= "\n";
@@ -158,11 +161,11 @@ function buildNamespaceBlock(array $classFiles, string $projectRoot, string $pro
         }
     }
 
-    $block  = "namespace OpenVpnLdapPlusAuth {\n";
+    $block = "namespace OpenVpnLdapPlusAuth {\n";
 
     // 標準ライブラリ use 宣言を先頭に一括出力
     foreach (array_keys($stdUses) as $use) {
-        $block .= "    use {$use};\n";
+        $block .= SOURCE_INDENT . "use {$use};\n";
     }
     if (!empty($stdUses)) {
         $block .= "\n";
@@ -173,9 +176,9 @@ function buildNamespaceBlock(array $classFiles, string $projectRoot, string $pro
         $relPath = getRelativePath($classFile, $projectRoot, $projectName);
         $content = processClassFileContent($classFile);
 
-        $block .= "    // ---- Begin {$relPath} ----\n";
+        $block .= SOURCE_INDENT . "// ---- Begin {$relPath} ----\n";
         $block .= $content;
-        $block .= "    // ---- End {$relPath} ----\n";
+        $block .= SOURCE_INDENT . "// ---- End {$relPath} ----\n";
         $block .= "\n";
     }
 
@@ -199,7 +202,7 @@ function buildGlobalBlock(string $entryFile, string $projectRoot, string $projec
     // エントリポイントから use 宣言を収集
     $uses = collectAllUses($entryFile);
 
-    $block  = "namespace {\n";
+    $block = "namespace {\n";
 
     // use 宣言を先頭に出力（グローバルnamespaceでは非複合名は不要なため除外）
     foreach ($uses as $use) {
@@ -207,16 +210,16 @@ function buildGlobalBlock(string $entryFile, string $projectRoot, string $projec
         if (strpos($use, '\\') === false) {
             continue;
         }
-        $block .= "    use {$use};\n";
+        $block .= SOURCE_INDENT . "use {$use};\n";
     }
     if (!empty($uses)) {
         $block .= "\n";
     }
 
     // エントリポイントの本体
-    $block .= "    // ---- Begin {$relPath} ----\n";
+    $block .= SOURCE_INDENT . "// ---- Begin {$relPath} ----\n";
     $block .= processEntryFileContent($entryFile);
-    $block .= "    // ---- End {$relPath} ----\n";
+    $block .= SOURCE_INDENT . "// ---- End {$relPath} ----\n";
 
     $block .= "}\n";
 
@@ -238,7 +241,7 @@ function processClassFileContent(string $filePath): string
         return '';
     }
 
-    $lines  = explode("\n", $content);
+    $lines = explode("\n", $content);
     $result = [];
 
     foreach ($lines as $line) {
@@ -291,7 +294,7 @@ function processEntryFileContent(string $filePath): string
         return '';
     }
 
-    $lines  = explode("\n", $content);
+    $lines = explode("\n", $content);
     $result = [];
 
     foreach ($lines as $line) {
@@ -313,11 +316,11 @@ function processEntryFileContent(string $filePath): string
         }
         // require / require_once / include / include_once をコメントアウト
         if (preg_match('/^\s*(require_once|require|include_once|include)\s+/', $line)) {
-            $result[] = '    // ' . $line;
+            $result[] = SOURCE_INDENT . '// ' . $line;
             continue;
         }
         // 4スペースインデント
-        $result[] = ($line === '' || trim($line) === '') ? '' : '    ' . $line;
+        $result[] = ($line === '' || trim($line) === '') ? '' : SOURCE_INDENT . $line;
     }
 
     // 先頭・末尾の空行を除去
@@ -347,7 +350,7 @@ function processEntryFileContent(string $filePath): string
 function getRelativePath(string $filePath, string $projectRoot, string $projectName): string
 {
     // パス区切り文字を統一
-    $filePath    = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $filePath);
+    $filePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $filePath);
     $projectRoot = rtrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $projectRoot), DIRECTORY_SEPARATOR);
 
     $relative = ltrim(str_replace($projectRoot, '', $filePath), DIRECTORY_SEPARATOR);
